@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator & Strength Checker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .password-display {
+      background: #f7f9fc;
+      border: 2px solid #e1e8ed;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .password-display:hover {
+      border-color: #667eea;
+    }
+
+    #password {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      color: #333;
+      word-break: break-all;
+      min-height: 24px;
+    }
+
+    .btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+
+    .strength-meter {
+      margin-bottom: 30px;
+    }
+
+    .strength-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .strength-score {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e1e8ed;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      transition: all 0.4s ease;
+      border-radius: 10px;
+    }
+
+    .strength-weak { background: #ff4757; }
+    .strength-fair { background: #ffa502; }
+    .strength-good { background: #26de81; }
+    .strength-strong { background: #20bf6b; }
+
+    .entropy {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .options {
+      margin-bottom: 25px;
+    }
+
+    .option-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      border-radius: 5px;
+      background: #e1e8ed;
+      outline: none;
+     
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 8px rgba(102, 126, 234, 0.1);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      border: none;
+    }
+
+    .length-value {
+      font-weight: 600;
+      color: #667eea;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .checkboxes {
+      display: grid;
+      gap: 12px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #667eea;
+    }
+
+    .checkbox-label {
+      margin: 0;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #20bf6b;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      font-weight: 500;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Password Generator</h1>
+    <p class="subtitle">Create secure passwords with real-time strength analysis</p>
+
+    <div class="password-display">
+      <div id="password">Click generate to create a password</div>
+      <button class="btn" id="copyBtn">Copy</button>
+    </div>
+
+    <div class="strength-meter">
+      <div class="strength-label">
+        <span>Password Strength</span>
+        <span class="strength-score" id="strengthText">-</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="entropy" id="entropyText">Entropy: - bits</div>
+    </div>
+
+    <div class="options">
+      <div class="option-group">
+        <label for="length">Password Length: <span class="length-value" id="lengthValue">16</span></label>
+        <div class="slider-container">
+          <input type="range" id="length" min="8" max="64" value="16">
+        </div>
+      </div>
+
+      <div class="option-group">
+        <label>Character Types:</label>
+        <div class="checkboxes">
+          <div class="checkbox-item">
+            <input type="checkbox" id="uppercase" checked>
+            <label for="uppercase" class="checkbox-label">Uppercase (A-Z)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="lowercase" checked>
+            <label for="lowercase" class="checkbox-label">Lowercase (a-z)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="numbers" checked>
+            <label for="numbers" class="checkbox-label">Numbers (0-9)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="symbols" checked>
+            <label for="symbols" class="checkbox-label">Symbols (!@#$%^&*)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="generateBtn">Generate Password</button>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    const passwordEl = document.getElementById('password');
+    const lengthSlider = document.getElementById('length');
+    const lengthValue = document.getElementById('lengthValue');
+    const uppercaseCheck = document.getElementById('uppercase');
+    const lowercaseCheck = document.getElementById('lowercase');
+    const numbersCheck = document.getElementById('numbers');
+    const symbolsCheck = document.getElementById('symbols');
+    const generateBtn = document.getElementById('generateBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const progressFill = document.getElementById('progressFill');
+    const strengthText = document.getElementById('strengthText');
+    const entropyText = document.getElementById('entropyText');
+    const toast = document.getElementById('toast');
+
+    const charSets = {
+      uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      lowercase: 'abcdefghijklmnopqrstuvwxyz',
+      numbers: '0123456789',
+      symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+    };
+
+    // Update length display
+    lengthSlider.addEventListener('input', (e) => {
+      lengthValue.textContent = e.target.value;
+    });
+
+    // Generate password
+    function generatePassword() {
+      const length = parseInt(lengthSlider.value);
+      let charset = '';
+      let poolSize = 0;
+
+      if (uppercaseCheck.checked) {
+        charset += charSets.uppercase;
+        poolSize += charSets.uppercase.length;
+      }
+      if (lowercaseCheck.checked) {
+        charset += charSets.lowercase;
+        poolSize += charSets.lowercase.length;
+      }
+      if (numbersCheck.checked) {
+        charset += charSets.numbers;
+        poolSize += charSets.numbers.length;
+      }
+      if (symbolsCheck.checked) {
+        charset += charSets.symbols;
+        poolSize += charSets.symbols.length;
+      }
+
+      if (charset === '') {
+        alert('Please select at least one character type!');
+        return '';
+      }
+
+      let password = '';
+      const array = new Uint32Array(length);
+      crypto.getRandomValues(array);
+
+      for (let i = 0; i < length; i++) {
+        password += charset[array[i] % charset.length];
+      }
+
+      return password;
+    }
+
+    // Calculate entropy
+    function calculateEntropy(password, poolSize) {
+      if (!password || poolSize === 0) return 0;
+      return Math.log2(Math.pow(poolSize, password.length));
+    }
+
+    // Check password strength
+    function checkStrength(password) {
+      if (!password) {
+        return { score: 0, text: '-', color: '', percent: 0, entropy: 0 };
+      }
+
+      let poolSize = 0;
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      const hasSymbol = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password);
+
+      if (hasUpper) poolSize += 26;
+      if (hasLower) poolSize += 26;
+      if (hasNumber) poolSize += 10;
+      if (hasSymbol) poolSize += 32;
+
+      const entropy = calculateEntropy(password, poolSize);
+      let score = 0;
+      let text = '';
+      let color = '';
+
+      if (entropy < 40) {
+        score = 25;
+        text = 'Weak';
+        color = 'strength-weak';
+      } else if (entropy < 60) {
+        score = 50;
+        text = 'Fair';
+        color = 'strength-fair';
+      } else if (entropy < 80) {
+        score = 75;
+        text = 'Good';
+        color = 'strength-good';
+      } else {
+        score = 100;
+        text = 'Strong';
+        color = 'strength-strong';
+      }
+
+      return { score, text, color, entropy: Math.round(entropy) };
+    }
+
+    // Update strength meter
+    function updateStrengthMeter(password) {
+      let poolSize = 0;
+      if (uppercaseCheck.checked) poolSize += 26;
+      if (lowercaseCheck.checked) poolSize += 26;
+      if (numbersCheck.checked) poolSize += 10;
+      if (symbolsCheck.checked) poolSize += 32;
+
+      const strength = checkStrength(password);
+      
+      progressFill.style.width = strength.score + '%';
+      progressFill.className = 'progress-fill ' + strength.color;
+      strengthText.textContent = strength.text;
+      entropyText.textContent = `Entropy: ${strength.entropy} bits`;
+    }
+
+    // Copy to clipboard
+    async function copyToClipboard() {
+      const text = passwordEl.textContent;
+      
+      if (text === 'Click generate to create a password') {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast();
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast();
+      }
+    }
+
+    // Show toast notification
+    function showToast() {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // Event listeners
+    generateBtn.addEventListener('click', () => {
+      const password = generatePassword();
+      if (password) {
+        passwordEl.textContent = password;
+        updateStrengthMeter(password);
+      }
+    });
+
+    copyBtn.addEventListener('click', copyToClipboard);
+
+    // Generate initial password
+    window.addEventListener('load', () => {
+      const password = generatePassword();
+      passwordEl.textContent = password;
+      updateStrengthMeter(password);
+    });
+  </script>
+</body>
+</html>
